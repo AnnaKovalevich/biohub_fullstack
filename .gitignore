@@ -1,0 +1,73 @@
+# Общие для Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-store/
+
+# Сборки и кэш
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+.cache/
+
+# Переменные окружения
+.env
+.env.local
+.env.production
+
+# Логи
+logs/
+*.log
+
+# IDE и ОС
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+tmp/
+temp/
+*.tmp
+
+# Данные MinIO и загрузки (бэкенд)
+minio-data/
+uploads/
+*.db
+*.sqlite
+*.sqlite-journal
+
+# Prisma (миграции обычно хранятся, но можно игнорировать сгенерированные файлы)
+prisma/*.db
+prisma/*.sqlite
+prisma/*.db-journal
+
+# Покрытие тестов
+coverage/
+
+# Фронтенд (сборки Vite)
+dist/
+
+# Файлы конкретно для ваших проектов (если нужно)
+backend_standalone/.env
+backend_standalone/uploads/
+backend_standalone/minio-data/
+biohub-frontend-clean/dist/
+
+# Миграции Prisma (опционально, если хотите хранить их в репозитории – не игнорируйте)
+# backend_standalone/prisma/migrations/
+backend_standalone/minio
+biohub-frontend-clean/minio
+*.log
+minio-data/
+uploads/
+
+minio.*
+*.log
+biohub-frontend-clean/minio*

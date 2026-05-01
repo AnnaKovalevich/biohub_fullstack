@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-base text-gray-200 font-sans;
+  }
+}
+
+@layer components {
+  input, textarea, select {
+    @apply bg-base border border-borderLine rounded-custom px-4 py-2 text-white focus:outline-none focus:border-accent;
+  }
+  .dropzone-stage {
+    @apply transition-all duration-200;
+  }
+  .drag-over {
+    @apply border-accent bg-accent-dim;
+  }
+  .glass-card {
+    background: rgba(22,27,34,0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0D1117;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+}
