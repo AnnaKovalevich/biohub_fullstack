@@ -71,3 +71,7 @@ uploads/
 minio.*
 *.log
 biohub-frontend-clean/minio*
+data/
+.minio.sys/
+biohub/
+*.bak
