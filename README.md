@@ -29,7 +29,7 @@ BioHub is a full-stack platform for managing genomic projects, experiments, and 
 
 * Node.js
 * tRPC
-* Database layer (e.g., PostgreSQL, MongoDB)
+* Database layer (e.g., PostgreSQL, S3)
 
 ---
 
