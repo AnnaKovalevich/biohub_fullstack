@@ -36,7 +36,7 @@ BioHub is a full-stack platform for managing genomic projects, experiments, and 
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/biohub.git
+git clone ...
 cd biohub
 npm install
 ```
@@ -95,11 +95,19 @@ The platform exposes a type-safe API via tRPC. Example procedures include:
 
 ## Roadmap
 
-* Authentication and access control
-* Pipeline execution for bioinformatics workflows
-* Data visualization (e.g., genome browser, analytical dashboards)
-* Integration with cloud storage providers (e.g., S3, GCS)
-* Quality control (QC) metrics and reporting
+* Basic authentication and session management
+
+* File lifecycle operations (download, delete)
+
+* Pagination and filtering for projects and files
+
+* File metadata extraction (size, format, timestamps)
+
+* Storage abstraction layer (local → S3-compatible backends)
+
+* Background processing for large file handling
+
+* Improved error handling and logging
 
 ---
 
@@ -115,7 +123,4 @@ MIT License
 
 ---
 
-## Authors
-
-BioHub Team
 
