@@ -117,10 +117,5 @@ Contributions are welcome. Please open an issue to discuss proposed changes or s
 
 ---
 
-## License
-
-MIT License
-
----
 
 
