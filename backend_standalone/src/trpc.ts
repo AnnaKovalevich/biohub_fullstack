@@ -2,7 +2,6 @@ import { initTRPC } from "@trpc/server";
 import _ from "lodash";
 import { z } from "zod";
 
-// Генерируем 100 идей (оставляем как есть)
 const ideas = _.times(100, (i) => ({
   nick: `cool-idea-nick-${i}`,
   name: `Idea ${i}`,
@@ -28,7 +27,7 @@ export const trpcRouter = trpc.router({
       if (!idea) {
         throw new Error("Idea not found");
       }
-      return { idea }; // ← оборачиваем в объект
+      return { idea };
     }),
 });
 

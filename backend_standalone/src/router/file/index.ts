@@ -1,40 +1,71 @@
 import { z } from "zod";
 import { trpc } from "../../lib/trpc";
 import { TRPCError } from "@trpc/server";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
 const s3Client = new S3Client({
   region: process.env.S3_REGION || "us-east-1",
-  endpoint: process.env.S3_ENDPOINT,
+  ...(process.env.S3_ENDPOINT && { endpoint: process.env.S3_ENDPOINT }),
   forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY || "minioadmin",
     secretAccessKey: process.env.S3_SECRET_KEY || "minioadmin",
   },
 });
+
 const BUCKET = process.env.S3_BUCKET || "biohub";
 
-function serializeFile(file: any) {
-  return {
-    ...file,
-    fileSize: file.fileSize ? Number(file.fileSize) : null,
-  };
+async function checkAccess(ctx: any, projectId: string) {
+  const project = await ctx.prisma.project.findUnique({
+    where: { id: projectId },
+    include: { sharedAccess: true },
+  });
+
+  if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+
+  const hasAccess =
+    project.ownerId === ctx.userId ||
+    project.sharedAccess.some(
+      (sa: any) => sa.userId === ctx.userId && sa.status === "accepted",
+    );
+
+  if (!hasAccess) throw new TRPCError({ code: "FORBIDDEN" });
 }
 
 export const fileRouter = trpc.router({
   getUploadUrl: trpc.procedure
-    .input(z.object({ projectId: z.string(), stage: z.string(), fileName: z.string(), fileSize: z.number(), mimeType: z.string().optional() }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        stage: z.string(),
+        fileName: z.string(),
+        fileSize: z.number(),
+        mimeType: z.string().optional(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
-      const key = `projects/${input.projectId}/${input.stage}/${randomUUID()}-${input.fileName}`;
+
+      await checkAccess(ctx, input.projectId);
+
+      const key = `projects/${input.projectId}/${randomUUID()}-${input.fileName}`;
+
       const command = new PutObjectCommand({
         Bucket: BUCKET,
         Key: key,
         ContentType: input.mimeType || "application/octet-stream",
       });
-      const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+      const uploadUrl = await getSignedUrl(s3Client, command, {
+        expiresIn: 3600,
+      });
+
       const file = await ctx.prisma.file.create({
         data: {
           projectId: input.projectId,
@@ -47,26 +78,59 @@ export const fileRouter = trpc.router({
           uploadedBy: ctx.userId,
         },
       });
-      return { uploadUrl, fileId: file.id, s3Key: key };
+
+      return { uploadUrl, fileId: file.id };
     }),
+
   list: trpc.procedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ input, ctx }) => {
       if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      await checkAccess(ctx, input.projectId);
+
       const files = await ctx.prisma.file.findMany({
         where: { projectId: input.projectId },
         orderBy: { createdAt: "desc" },
       });
-      return { files: files.map(serializeFile) };
+
+      return {
+        files: files.map((f) => ({
+          ...f,
+          fileSize: f.fileSize ? Number(f.fileSize) : null,
+        })),
+      };
     }),
+
   getDownloadUrl: trpc.procedure
     .input(z.object({ fileId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
-      const file = await ctx.prisma.file.findUnique({ where: { id: input.fileId } });
+
+      const file = await ctx.prisma.file.findUnique({
+        where: { id: input.fileId },
+        include: { project: { include: { sharedAccess: true } } },
+      });
+
       if (!file) throw new TRPCError({ code: "NOT_FOUND" });
-      const command = new GetObjectCommand({ Bucket: file.s3Bucket, Key: file.s3Key });
-      const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+      const hasAccess =
+        file.project.ownerId === ctx.userId ||
+        file.project.sharedAccess.some(
+          (sa: any) => sa.userId === ctx.userId && sa.status === "accepted",
+        );
+
+      if (!hasAccess) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const command = new GetObjectCommand({
+        Bucket: file.s3Bucket,
+        Key: file.s3Key,
+      });
+
+      const downloadUrl = await getSignedUrl(s3Client, command, {
+        expiresIn: 3600,
+      });
+
       return { downloadUrl, fileName: file.fileName };
     }),
 });
