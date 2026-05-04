@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { trpc } from "../../lib/trpc";
+import { trpc } from "../../lib/trpc.js";
 import { TRPCError } from "@trpc/server";
 import {
   S3Client,
