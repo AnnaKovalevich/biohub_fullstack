@@ -49,11 +49,22 @@ const updateProjectInput = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
   status: z.enum(["active", "in_progress", "completed"]).optional(),
-  platform: z.string().optional(),
-  qcStatus: z.enum(["pending", "passed", "failed"]).optional(),
+  platform: z.string().optional().nullable(), // ← добавлено .nullable()
+  qcStatus: z.enum(["pending", "passed", "failed"]).optional().nullable(), // ← если нужно
   experimentDate: z.string().datetime().optional().nullable(),
-  pipelineParams: z.any().optional(), // <-- добавлено
+  pipelineParams: z.any().optional(),
 });
+
+// const updateProjectInput = z.object({
+//   id: z.string(),
+//   name: z.string().min(1).optional(),
+//   description: z.string().optional(),
+//   status: z.enum(["active", "in_progress", "completed"]).optional(),
+//   platform: z.string().optional(),
+//   qcStatus: z.enum(["pending", "passed", "failed"]).optional(),
+//   experimentDate: z.string().datetime().optional().nullable(),
+//   pipelineParams: z.any().optional(), // <-- добавлено
+// });
 
 export const projectRouter = trpc.router({
   create: trpc.procedure
