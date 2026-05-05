@@ -177,6 +177,8 @@ export const projectRouter = trpc.router({
       if (!project) throw new TRPCError({ code: "NOT_FOUND" });
       if (project.ownerId !== ctx.userId)
         throw new TRPCError({ code: "FORBIDDEN" });
+
+      // 1. Удалить файлы из S3 (не прерывать при ошибке)
       for (const file of project.files) {
         try {
           const command = new DeleteObjectCommand({
@@ -185,12 +187,44 @@ export const projectRouter = trpc.router({
           });
           await s3Client.send(command);
         } catch (err) {
-          console.error(`Failed to delete file ${file.id} from MinIO:`, err);
+          console.error(`Failed to delete file ${file.id} from S3:`, err);
         }
       }
+
+      // 2. Удалить записи файлов из БД
+      await ctx.prisma.file.deleteMany({
+        where: { projectId: input.id },
+      });
+
+      // 3. Удалить сам проект
       await ctx.prisma.project.delete({ where: { id: input.id } });
       return { success: true };
     }),
+  // delete: trpc.procedure
+  //   .input(z.object({ id: z.string() }))
+  //   .mutation(async ({ input, ctx }) => {
+  //     if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  //     const project = await ctx.prisma.project.findUnique({
+  //       where: { id: input.id },
+  //       include: { files: true },
+  //     });
+  //     if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+  //     if (project.ownerId !== ctx.userId)
+  //       throw new TRPCError({ code: "FORBIDDEN" });
+  //     for (const file of project.files) {
+  //       try {
+  //         const command = new DeleteObjectCommand({
+  //           Bucket: file.s3Bucket,
+  //           Key: file.s3Key,
+  //         });
+  //         await s3Client.send(command);
+  //       } catch (err) {
+  //         console.error(`Failed to delete file ${file.id} from MinIO:`, err);
+  //       }
+  //     }
+  //     await ctx.prisma.project.delete({ where: { id: input.id } });
+  //     return { success: true };
+  //   }),
 });
 
 // import { z } from "zod";
