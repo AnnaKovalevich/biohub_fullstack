@@ -1,79 +1,66 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String
-  fullName    String
-  position    String?
-  institution String?
-  role        String    @default("user")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  ownedProjects Project[]   @relation("OwnerProjects")
-  projectAccess ProjectAccess[]
-  files         File[]
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  fullName         String
+  position         String?
+  institution      String?
+  role             String           @default("user")
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  projects         Project[]
+  files            File[]
+  projectAccess    ProjectAccess[]
+  sentInvitations  ProjectAccess[]  @relation("InvitedBy")
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  name        String
-  type        String
-  description String?
-  sampleId    String?
-  
-  pipelineParams Json?
-  computeEnv     Json?
-  advanced       Json?
-  
-  platform       String?   // новая платформа (например "Illumina", "MinION")
-  experimentDate DateTime? // дата эксперимента
-  status         String   @default("active")
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  ownerId     String
-  owner       User     @relation("OwnerProjects", fields: [ownerId], references: [id])
-
-  files       File[]
-  sharedAccess ProjectAccess[]
+  id              String          @id @default(uuid())
+  name            String
+  type            String
+  description     String?
+  sampleId        String?
+  pipelineParams  Json?
+  computeEnv      Json?
+  advanced        Json?
+  status          String          @default("active")
+  platform        String?
+  qcStatus        String          @default("pending")
+  experimentDate  DateTime?
+  ownerId         String
+  owner           User            @relation(fields: [ownerId], references: [id])
+  files           File[]
+  sharedAccess    ProjectAccess[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model File {
   id          String   @id @default(uuid())
   projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-  
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   stage       String
   fileName    String
-  fileSize    BigInt?
+  fileSize    BigInt
   s3Key       String
   s3Bucket    String
   mimeType    String?
-  md5Hash     String?
   uploadedBy  String
   uploader    User     @relation(fields: [uploadedBy], references: [id])
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ProjectAccess {
   id         String   @id @default(uuid())
   projectId  String
-  project    Project  @relation(fields: [projectId], references: [id])
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission String   @default("read")
   status     String   @default("pending")
   invitedBy  String
+  inviter    User     @relation("InvitedBy", fields: [invitedBy], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
