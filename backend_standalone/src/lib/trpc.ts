@@ -1,21 +1,17 @@
-import { initTRPC } from "@trpc/server";
-import * as trpcExpress from "@trpc/server/adapters/express";
-import { type Express } from "express";
-import { type TrpcRouter } from "../router";
-import { type TrpcContext } from "./trpcContext";
+import { createTRPCReact } from "@trpc/react-query";
+import { httpBatchLink } from "@trpc/client";
+import type { TrpcRouter } from "../../../backend_standalone/src/router/index";
 
-export const trpc = initTRPC.context<TrpcContext>().create();
+export const trpc = createTRPCReact<TrpcRouter>();
 
-export const applyTrpcToExpressApp = (
-  expressApp: Express,
-  createContext: (opts: trpcExpress.CreateExpressContextOptions) => TrpcContext,
-  router: TrpcRouter
-) => {
-  expressApp.use(
-    "/trpc",
-    trpcExpress.createExpressMiddleware({
-      router,
-      createContext,
-    })
-  );
-};
+export const trpcClient = trpc.createClient({
+  links: [
+    httpBatchLink({
+      url: "http://localhost:3000/trpc",
+      headers() {
+        const token = localStorage.getItem("token");
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      },
+    }),
+  ],
+});

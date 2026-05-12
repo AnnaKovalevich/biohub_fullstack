@@ -11,7 +11,7 @@ import { randomUUID } from "crypto";
 
 const s3Client = new S3Client({
   region: process.env.S3_REGION || "us-east-1",
-  ...(process.env.S3_ENDPOINT && { endpoint: process.env.S3_ENDPOINT }),
+  endpoint: process.env.S3_ENDPOINT || "http://localhost:9000",
   forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY || "minioadmin",
@@ -54,7 +54,7 @@ export const fileRouter = trpc.router({
 
       await checkAccess(ctx, input.projectId);
 
-      const key = `projects/${input.projectId}/${randomUUID()}-${input.fileName}`;
+      const key = `projects/${input.projectId}/${input.stage}/${randomUUID()}-${input.fileName}`;
 
       const command = new PutObjectCommand({
         Bucket: BUCKET,
@@ -71,10 +71,10 @@ export const fileRouter = trpc.router({
           projectId: input.projectId,
           stage: input.stage,
           fileName: input.fileName,
-          fileSize: input.fileSize,
+          fileSize: BigInt(input.fileSize),
           s3Key: key,
           s3Bucket: BUCKET,
-          mimeType: input.mimeType,
+          mimeType: input.mimeType || null,
           uploadedBy: ctx.userId,
         },
       });
@@ -97,14 +97,14 @@ export const fileRouter = trpc.router({
       return {
         files: files.map((f) => ({
           ...f,
-          fileSize: f.fileSize ? Number(f.fileSize) : null,
+          fileSize: f.fileSize ? Number(f.fileSize) : 0,
         })),
       };
     }),
 
   getDownloadUrl: trpc.procedure
     .input(z.object({ fileId: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const file = await ctx.prisma.file.findUnique({

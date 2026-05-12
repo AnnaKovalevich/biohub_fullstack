@@ -1,1 +1,1 @@
-export type TrpcRouter = any
+export type TrpcRouter = any;

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BioHub | Bioinformatics Expert Repository</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #0d1117;
+        color: #c9d1d9;
+        font-family: -apple-system, system-ui, sans-serif;
+      }
+      .card {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+      }
+      .input-dark {
+        background-color: #0d1117;
+        border: 1px solid #30363d;
+        color: #f0f6fc;
+      }
+      .input-dark:focus {
+        border-color: #58a6ff;
+        outline: none;
+        ring: 1px #58a6ff;
+      }
+      .details-panel {
+        display: none;
+      }
+      .details-panel.active {
+        display: block;
+      }
+      .btn-primary {
+        background-color: #238636;
+        color: white;
+        transition: 0.2s;
+      }
+      .btn-primary:hover {
+        background-color: #2ea043;
+      }
+      .stage-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      /* Стилизация скроллбара для текстового поля */
+      textarea::-webkit-scrollbar {
+        width: 8px;
+      }
+      textarea::-webkit-scrollbar-track {
+        background: #0d1117;
+      }
+      textarea::-webkit-scrollbar-thumb {
+        background: #30363d;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="p-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <h1 class="text-2xl font-bold">Создание нового исследования</h1>
+          <p class="text-gray-400 text-sm mt-1">
+            Интеллектуальная загрузка и структурирование метаданных
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <span
+            class="bg-blue-900/30 text-blue-400 text-[10px] font-bold px-2 py-1 rounded border border-blue-800"
+            >BIOINFO COMPLIANT</span
+          >
+          <span
+            class="bg-amber-900/30 text-amber-400 text-[10px] font-bold px-2 py-1 rounded border border-amber-800"
+            >DRAFT</span
+          >
+        </div>
+      </div>
+
+      <form class="space-y-4">
+        <!-- БЛОК: Метаданные проекта -->
+        <div class="card p-5">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="md:col-span-2">
+              <label
+                class="block text-[11px] text-gray-500 mb-1 uppercase font-bold"
+                >Название анализа</label
+              >
+              <input
+                type="text"
+                placeholder="Напр: Исследование устойчивости к бета-лактамам"
+                class="input-dark w-full rounded p-2"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[11px] text-gray-500 mb-1 uppercase font-bold"
+                >Тип эксперимента</label
+              >
+              <select class="input-dark w-full rounded p-2">
+                <option>WGS (Whole Genome)</option>
+                <option>Targeted Panels</option>
+                <option>Metagenomics</option>
+                <option>RNA-Seq</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-[11px] text-gray-500 mb-1 uppercase font-bold"
+                >Статус</label
+              >
+              <select class="input-dark w-full rounded p-2 text-amber-500">
+                <option>В процессе</option>
+                <option>Завершено</option>
+                <option>Архив</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- НОВОЕ ПОЛЕ: Описание проекта -->
+          <div class="mt-4 pt-4 border-t border-gray-800">
+            <label
+              class="block text-[11px] text-gray-500 mb-1 uppercase font-bold tracking-wider"
+            >
+              <i class="fas fa-file-alt mr-1"></i> Описание проекта и научный
+              контекст
+            </label>
+            <textarea
+              placeholder="Укажите цель исследования, особенности пробоподготовки (напр. метод выделения ДНК), использованные пайплайны или любую информацию, критичную для воспроизводимости данных..."
+              class="input-dark w-full rounded p-3 h-32 text-sm font-mono placeholder:text-gray-600 focus:placeholder:text-transparent transition-all"
+            ></textarea>
+            <p class="text-[10px] text-gray-500 mt-1 italic">
+              * Рекомендуется придерживаться стандартов MIAME/MINSEQE для
+              описания экспериментов.
+            </p>
+          </div>
+        </div>
+
+        <!-- БЛОК: Стадии загрузки -->
+        <div class="card p-5 space-y-3">
+          <h3 class="text-sm font-bold text-gray-400 mb-4">
+            Файлы и технические паспорта
+          </h3>
+
+          <!-- 1. FASTQ -->
+          <!-- 1. FASTQ -->
+          <div class="border border-gray-800 rounded">
+            <div
+              class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/40"
+              onclick="toggle('fastq')"
+            >
+              <div class="flex items-center">
+                <div class="stage-icon bg-blue-900/20 text-blue-500 mr-3">
+                  <i class="fas fa-dna"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">1. Сырые чтения (FASTQ)</p>
+                  <p class="text-[10px] text-gray-500">
+                    Platform, Phred, Insert Size, Paired-end files
+                  </p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+            </div>
+            <div
+              id="fastq"
+              class="details-panel p-4 border-t border-gray-800 bg-black/20"
+            >
+              <!-- Метаданные (теперь 3 колонки) -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Платформа</label
+                  >
+                  <select class="input-dark w-full rounded p-1.5 text-xs">
+                    <option>Illumina MiSeq</option>
+                    <option>Oxford Nanopore</option>
+                    <option>PacBio</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Insert Size</label
+                  >
+                  <input
+                    type="number"
+                    placeholder="450"
+                    class="input-dark w-full rounded p-1.5 text-xs"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Phred Score[cite: 1]</label
+                  >
+                  <select class="input-dark w-full rounded p-1.5 text-xs">
+                    <option>Phred33</option>
+                    <option>Phred64</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Поля загрузки файлов (R1 и R2) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label
+                    class="text-[9px] text-blue-400 uppercase font-bold tracking-tighter"
+                    >Read 1 (Forward)</label
+                  >
+                  <button
+                    type="button"
+                    class="w-full border border-dashed border-gray-700 py-4 rounded text-xs text-gray-500 hover:text-white hover:border-blue-500 hover:bg-blue-900/10 transition flex flex-col items-center gap-2"
+                  >
+                    <i class="fas fa-upload text-lg"></i>
+                    <span>Выбрать R1.fastq.gz</span>
+                  </button>
+                </div>
+                <div class="space-y-2">
+                  <label
+                    class="text-[9px] text-blue-400 uppercase font-bold tracking-tighter"
+                    >Read 2 (Reverse)</label
+                  >
+                  <button
+                    type="button"
+                    class="w-full border border-dashed border-gray-700 py-4 rounded text-xs text-gray-500 hover:text-white hover:border-blue-500 hover:bg-blue-900/10 transition flex flex-col items-center gap-2"
+                  >
+                    <i class="fas fa-upload text-lg"></i>
+                    <span>Выбрать R2.fastq.gz</span>
+                  </button>
+                </div>
+              </div>
+              <p class="text-[9px] text-gray-600 mt-3 italic text-center">
+                * Для Single-end экспериментов оставьте поле Read 2 пустым.
+              </p>
+            </div>
+          </div>
+
+          <!-- 2. BAM -->
+          <div class="border border-gray-800 rounded">
+            <div
+              class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/40"
+              onclick="toggle('bam')"
+            >
+              <div class="flex items-center">
+                <div class="stage-icon bg-purple-900/20 text-purple-500 mr-3">
+                  <i class="fas fa-align-left"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">
+                    2. Выравнивание (BAM/CRAM)
+                  </p>
+                  <p class="text-[10px] text-gray-500">
+                    Reference Genome, Tool version[cite: 1]
+                  </p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+            </div>
+            <div
+              id="bam"
+              class="details-panel p-4 border-t border-gray-800 bg-black/20"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input
+                  type="text"
+                  placeholder="Reference ID (напр. NC_000913.3)"
+                  class="input-dark rounded p-2 text-xs"
+                />
+                <input
+                  type="text"
+                  placeholder="Aligner (напр. BWA-MEM v0.7.17)"
+                  class="input-dark rounded p-2 text-xs"
+                />
+              </div>
+              <button
+                type="button"
+                class="w-full border border-dashed border-gray-700 py-3 rounded text-xs text-gray-500"
+              >
+                Загрузить BAM
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. VCF -->
+          <div class="border border-gray-800 rounded">
+            <div
+              class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/40"
+              onclick="toggle('vcf')"
+            >
+              <div class="flex items-center">
+                <div class="stage-icon bg-amber-900/20 text-amber-500 mr-3">
+                  <i class="fas fa-vial"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">3. Варианты (VCF/gVCF)</p>
+                  <p class="text-[10px] text-gray-500">
+                    Caller, Filters, Mutation Types[cite: 1]
+                  </p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+            </div>
+            <div
+              id="vcf"
+              class="details-panel p-4 border-t border-gray-800 bg-black/20"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Variant Caller[cite: 1]</label
+                  >
+                  <input
+                    type="text"
+                    placeholder="Напр: GATK v4.2"
+                    class="input-dark w-full rounded p-1.5 text-xs"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Min Var Freq</label
+                  >
+                  <input
+                    type="text"
+                    placeholder="0.5"
+                    class="input-dark w-full rounded p-1.5 text-xs"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Тип мутаций</label
+                  >
+                  <select class="input-dark w-full rounded p-1.5 text-xs">
+                    <option>SNP + Indels</option>
+                    <option>SNP only</option>
+                    <option>Structural Variants</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="w-full border border-dashed border-gray-700 py-3 rounded text-xs text-gray-500"
+              >
+                Загрузить VCF
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Annotations -->
+          <div class="border border-gray-800 rounded">
+            <div
+              class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/40"
+              onclick="toggle('ann')"
+            >
+              <div class="flex items-center">
+                <div class="stage-icon bg-emerald-900/20 text-emerald-500 mr-3">
+                  <i class="fas fa-tags"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">
+                    4. Аннотации (BED/GTF/GFF)
+                  </p>
+                  <p class="text-[10px] text-gray-500">
+                    DB Version, Tool, Predicted Impact[cite: 1]
+                  </p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+            </div>
+            <div
+              id="ann"
+              class="details-panel p-4 border-t border-gray-800 bg-black/20"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >База данных[cite: 1]</label
+                  >
+                  <select class="input-dark w-full rounded p-1.5 text-xs">
+                    <option>ResFinder (Резистентность)</option>
+                    <option>VFDB (Вирулентность)</option>
+                    <option>CARD</option>
+                    <option>NCBI RefSeq</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] text-gray-500 mb-1 uppercase font-bold"
+                    >Версия базы</label
+                  >
+                  <input
+                    type="text"
+                    placeholder="2024-01-15"
+                    class="input-dark w-full rounded p-1.5 text-xs"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                class="w-full border border-dashed border-gray-700 py-3 rounded text-xs text-gray-500"
+              >
+                Загрузить Аннотации
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопки сохранения -->
+        <div
+          class="flex justify-between items-center bg-[#161b22] border border-gray-800 p-5 rounded"
+        >
+          <div class="text-xs text-gray-500 font-mono">Total size: 0.00 GB</div>
+          <div class="space-x-3">
+            <button
+              type="button"
+              class="text-sm text-gray-400 px-4 py-2 hover:text-white transition"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              class="btn-primary px-8 py-2 rounded text-sm font-bold shadow-lg shadow-green-900/10"
+            >
+              Сохранить исследование
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      function toggle(id) {
+        const panel = document.getElementById(id);
+        panel.classList.toggle("active");
+        const icon = event.currentTarget.querySelector(
+          ".fa-chevron-down, .fa-chevron-up",
+        );
+        if (panel.classList.contains("active")) {
+          icon.classList.replace("fa-chevron-down", "fa-chevron-up");
+        } else {
+          icon.classList.replace("fa-chevron-up", "fa-chevron-down");
+        }
+      }
+    </script>
+  </body>
+</html>

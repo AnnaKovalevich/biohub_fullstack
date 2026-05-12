@@ -100,7 +100,41 @@ export const ProjectDetailsPage = () => {
     }
   };
 
-  const handlePreview = async (fileId: string, fileName: string) => {
+  const handlePreview = async (
+    fileId: string,
+    fileName: string,
+    mimeType?: string,
+  ) => {
+    // Расширения, которые можно отобразить как текст
+    const textExtensions = [
+      ".txt",
+      ".fastq",
+      ".fq",
+      ".fasta",
+      ".fa",
+      ".vcf",
+      ".bed",
+      ".gtf",
+      ".gff",
+      ".csv",
+      ".tsv",
+      ".json",
+      ".xml",
+      ".md",
+      ".log",
+    ];
+    const ext = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+    const isText =
+      textExtensions.includes(ext) ||
+      (mimeType && mimeType.startsWith("text/"));
+
+    if (!isText) {
+      alert(
+        'Этот файл имеет бинарный формат и не может быть отображён. Используйте кнопку "Скачать".',
+      );
+      return;
+    }
+
     try {
       const { downloadUrl } = await getDownloadUrl.mutateAsync({ fileId });
       const response = await fetch(downloadUrl);
@@ -110,9 +144,26 @@ export const ProjectDetailsPage = () => {
         text.slice(0, 5000) + (text.length > 5000 ? "\n... (обрезано)\n" : "");
       setPreviewFile({ name: fileName, content: preview });
     } catch (err) {
-      alert("Невозможно отобразить файл (возможно, бинарный)");
+      console.error(err);
+      alert(
+        "Невозможно отобразить файл. Возможно, файл повреждён или имеет недопустимую кодировку.",
+      );
     }
   };
+
+  // const handlePreview = async (fileId: string, fileName: string) => {
+  //   try {
+  //     const { downloadUrl } = await getDownloadUrl.mutateAsync({ fileId });
+  //     const response = await fetch(downloadUrl);
+  //     if (!response.ok) throw new Error("Не удалось загрузить файл");
+  //     const text = await response.text();
+  //     const preview =
+  //       text.slice(0, 5000) + (text.length > 5000 ? "\n... (обрезано)\n" : "");
+  //     setPreviewFile({ name: fileName, content: preview });
+  //   } catch (err) {
+  //     alert("Невозможно отобразить файл (возможно, бинарный)");
+  //   }
+  // };
 
   const handleSaveEdit = () => {
     // Сбор метаданных pipeline

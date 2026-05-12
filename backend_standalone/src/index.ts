@@ -3,6 +3,7 @@ import express from "express";
 import { createTrpcContext } from "./lib/trpcContext";
 import { applyTrpcToExpressApp } from "./lib/trpc";
 import { trpcRouter } from "./router";
+import { userRouter } from "./user";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
@@ -29,7 +30,10 @@ const storage = multer.diskStorage({
     cb(null, `${fileId}-${originalName}`);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 * 1024 },
+});
 
 async function main() {
   const expressApp = express();
@@ -39,8 +43,13 @@ async function main() {
       origin: "http://localhost:5173",
       credentials: true,
       methods: ["GET", "POST", "OPTIONS", "PUT"],
-      allowedHeaders: ["Content-Type", "trpc-accept", "trpc-content-type", "Authorization"],
-    })
+      allowedHeaders: [
+        "Content-Type",
+        "trpc-accept",
+        "trpc-content-type",
+        "Authorization",
+      ],
+    }),
   );
   expressApp.options("*", cors());
 
@@ -52,7 +61,9 @@ async function main() {
   expressApp.put("/upload/:fileId", upload.single("file"), async (req, res) => {
     try {
       const { fileId } = req.params;
-      const fileRecord = await prisma.file.findUnique({ where: { id: fileId } });
+      const fileRecord = await prisma.file.findUnique({
+        where: { id: fileId },
+      });
       if (!fileRecord) return res.status(404).send("File record not found");
       if (!req.file) return res.status(400).send("No file uploaded");
       res.json({ success: true });
