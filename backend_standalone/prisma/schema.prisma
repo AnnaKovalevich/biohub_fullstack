@@ -15,8 +15,8 @@ model User {
   position         String?
   institution      String?
   role             String           @default("user")
-  resetToken       String?
-  resetTokenExpiry DateTime?
+  resetToken       String?          
+  resetTokenExpiry DateTime?        
   projects         Project[]
   files            File[]
   projectAccess    ProjectAccess[]

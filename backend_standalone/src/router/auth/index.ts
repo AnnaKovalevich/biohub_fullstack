@@ -92,18 +92,20 @@ export const authRouter = trpc.router({
 
       try {
         await sendResetPasswordEmail(user.email, resetToken);
-        return {
-          success: true,
-          message: "Инструкция по сбросу пароля отправлена на вашу почту.",
-        };
       } catch (error) {
-        console.error("Ошибка при отправке письма:", error);
-        // Не выбрасываем ошибку, чтобы не раскрывать информацию о пользователе
-        return {
-          success: true,
-          message: "Инструкция по сбросу пароля отправлена на вашу почту.",
-        };
+        console.error("Ошибка отправки письма:", error);
+        // Не прерываем операцию – письмо может не дойти, но токен сохранён
       }
+
+      // Временно выведем ссылку в консоль сервера для теста (потом уберём)
+      console.log(
+        `Ссылка для сброса пароля: http://localhost:5173/reset-password?token=${resetToken}`,
+      );
+
+      return {
+        success: true,
+        message: "Инструкция по сбросу пароля отправлена на вашу почту.",
+      };
     }),
 
   resetPassword: trpc.procedure
