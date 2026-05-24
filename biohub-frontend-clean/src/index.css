@@ -2,38 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-base text-gray-200 font-sans;
-  }
+/* Светлая тема */
+body {
+  background-color: #eef9f2 !important;
+  color: #1e293b !important;
+}
+main,
+.bg-base {
+  background-color: #eef9f2 !important;
 }
 
-@layer components {
-  input, textarea, select {
-    @apply bg-base border border-borderLine rounded-custom px-4 py-2 text-white focus:outline-none focus:border-accent;
-  }
-  .dropzone-stage {
-    @apply transition-all duration-200;
-  }
-  .drag-over {
-    @apply border-accent bg-accent-dim;
-  }
-  .glass-card {
-    background: rgba(22,27,34,0.6);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-  }
+/* Сайдбар – белый */
+aside,
+aside[class*="w-64"] {
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Верхняя панель – белая */
+header,
+header[class*="h-20"] {
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
 }
-::-webkit-scrollbar-track {
-  background: #0D1117;
+
+.bg-surface {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid #d1e8d6;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-  border-radius: 8px;
+.text-white,
+.text-gray-200 {
+  color: #1e293b;
+}
+.text-muted {
+  color: #475569;
+}
+.text-accent {
+  color: #059669;
+}
+.ph-magnifying-glass {
+  color: #334155 !important;
+}
+.border-borderLine,
+.border-white\/5,
+.border-white\/10 {
+  border-color: #d1e8d6;
+}
+.bg-accent {
+  background-color: #059669 !important;
+  color: #fff !important;
+}
+a.bg-accent {
+  background-color: #059669 !important;
+  color: #fff !important;
+}
+nav a {
+  color: #475569;
+}
+nav a:hover {
+  color: #1e293b;
+  background-color: #e2f0e8;
+}
+input,
+textarea,
+select {
+  background-color: #fff;
+  border-color: #d1e8d6;
+  color: #1e293b;
+}
+
+/* Тёмная тема */
+.dark body {
+  background-color: #0d1117 !important;
+  color: #e5e7eb !important;
+}
+.dark main,
+.dark .bg-base {
+  background-color: #0d1117 !important;
+}
+.dark .bg-surface {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: none;
+}
+.dark .text-white,
+.dark .text-gray-200 {
+  color: #e5e7eb;
+}
+.dark .text-muted {
+  color: #8b949e;
+}
+.dark .text-accent {
+  color: #00ffaa;
+}
+.dark .ph-magnifying-glass {
+  color: #8b949e !important;
+}
+.dark .border-borderLine,
+.dark .border-white\/5,
+.dark .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.dark .bg-accent {
+  background-color: #00ffaa !important;
+  color: #0d1117 !important;
+}
+.dark a.bg-accent {
+  background-color: #00ffaa !important;
+  color: #0d1117 !important;
+}
+.dark nav a {
+  color: #8b949e;
+}
+.dark nav a:hover {
+  color: #e5e7eb;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #0d1117;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+/* Тёмная тема: возвращаем панели к тёмному */
+.dark aside,
+.dark aside[class*="w-64"] {
+  background-color: #0d1117 !important;
+  backdrop-filter: blur(12px) !important;
+}
+.dark header,
+.dark header[class*="h-20"] {
+  background-color: #0d1117 !important;
+  backdrop-filter: blur(12px) !important;
 }

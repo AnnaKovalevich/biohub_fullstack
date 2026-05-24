@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { NavLink } from "react-router-dom";
 import { trpc } from "../lib/trpc";
 
@@ -115,6 +116,10 @@ export const Sidebar = () => {
           <span className="text-sm">Аккаунт</span>
         </NavLink>
       </nav>
+
+      {/* Переключатель темы */}
+      <ThemeToggle />
+
       <div className="p-4 border-t border-borderLine">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-surface border border-borderLine flex items-center justify-center text-xs font-mono text-accent">

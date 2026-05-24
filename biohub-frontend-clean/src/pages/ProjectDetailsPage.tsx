@@ -296,10 +296,7 @@ export const ProjectDetailsPage = () => {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <div
-          className="flex-1 overflow-y-auto p-8 max-w-5xl mx-auto w-full"
-          style={{ backgroundColor: "#0d1117" }}
-        >
+        <div className="flex-1 overflow-y-auto p-8 max-w-5xl mx-auto w-full">
           <Link to="/" className="text-accent mb-4 inline-block">
             ← Назад к проектам
           </Link>
