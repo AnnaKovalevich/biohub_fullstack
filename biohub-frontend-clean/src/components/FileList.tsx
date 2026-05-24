@@ -1,16 +1,13 @@
-import { trpc } from "../lib/trpc";
+import { trpc, trpcClient } from "../lib/trpc";
 
 export const FileList = ({ projectId }: { projectId: string }) => {
   const { data, refetch } = trpc.file.list.useQuery({ projectId });
 
-  const downloadMutation = trpc.file.getDownloadUrl.useMutation();
-
   const handleDownload = async (fileId: string, fileName: string) => {
     try {
-      const res = await downloadMutation.mutateAsync({ fileId });
-
+      const result = await trpcClient.file.getDownloadUrl.query({ fileId });
       const link = document.createElement("a");
-      link.href = res.downloadUrl;
+      link.href = result.downloadUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();

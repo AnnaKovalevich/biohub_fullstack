@@ -1,9 +1,9 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { trpc } from "../lib/trpc";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
+import { trpc, trpcClient } from "../lib/trpc";
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +53,6 @@ export const ProjectDetailsPage = () => {
     { projectId: id! },
     { enabled: !!id },
   );
-  const getDownloadUrl = trpc.file.getDownloadUrl.useMutation();
   const updateProject = trpc.project.update.useMutation({
     onSuccess: () => {
       refetch();
@@ -93,9 +92,10 @@ export const ProjectDetailsPage = () => {
 
   const handleDownload = async (fileId: string, fileName: string) => {
     try {
-      const { downloadUrl } = await getDownloadUrl.mutateAsync({ fileId });
-      window.open(downloadUrl, "_blank");
+      const result = await trpcClient.file.getDownloadUrl.query({ fileId });
+      window.open(result.downloadUrl, "_blank");
     } catch (err) {
+      console.error("Ошибка скачивания:", err);
       alert("Ошибка при скачивании файла");
     }
   };
@@ -105,7 +105,6 @@ export const ProjectDetailsPage = () => {
     fileName: string,
     mimeType?: string,
   ) => {
-    // Расширения, которые можно отобразить как текст
     const textExtensions = [
       ".txt",
       ".fastq",
@@ -136,18 +135,16 @@ export const ProjectDetailsPage = () => {
     }
 
     try {
-      const { downloadUrl } = await getDownloadUrl.mutateAsync({ fileId });
-      const response = await fetch(downloadUrl);
+      const result = await trpcClient.file.getDownloadUrl.query({ fileId });
+      const response = await fetch(result.downloadUrl);
       if (!response.ok) throw new Error("Не удалось загрузить файл");
       const text = await response.text();
       const preview =
         text.slice(0, 5000) + (text.length > 5000 ? "\n... (обрезано)\n" : "");
       setPreviewFile({ name: fileName, content: preview });
     } catch (err) {
-      console.error(err);
-      alert(
-        "Невозможно отобразить файл. Возможно, файл повреждён или имеет недопустимую кодировку.",
-      );
+      console.error("Ошибка предпросмотра:", err);
+      alert("Невозможно отобразить файл. Попробуйте скачать его.");
     }
   };
 
