@@ -1,9 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { trpc, trpcClient } from "../lib/trpc";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
-import { trpc, trpcClient } from "../lib/trpc";
+import { AccessManager } from "../components/AccessManager";
 
 export const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +22,6 @@ export const ProjectDetailsPage = () => {
     experimentDate: "",
   });
 
-  // Метаданные pipeline
   const [fastqMetadata, setFastqMetadata] = useState({
     platform: "Illumina MiSeq",
     insertSize: 450,
@@ -53,14 +53,17 @@ export const ProjectDetailsPage = () => {
     { projectId: id! },
     { enabled: !!id },
   );
+  const { data: accessData } = trpc.project.listAccess.useQuery(
+    { projectId: id! },
+    { enabled: !!id },
+  );
   const updateProject = trpc.project.update.useMutation({
     onSuccess: () => {
       refetch();
       refetchFiles();
       setIsEditing(false);
     },
-    onError: (err) => {
-      console.error("Update error", err);
+    onError: (err: any) => {
       alert("Ошибка сохранения: " + err.message);
     },
   });
@@ -68,7 +71,6 @@ export const ProjectDetailsPage = () => {
 
   const files = filesData?.files || [];
 
-  // Загрузка данных проекта в формы
   useEffect(() => {
     if (project) {
       setEditForm({
@@ -95,7 +97,6 @@ export const ProjectDetailsPage = () => {
       const result = await trpcClient.file.getDownloadUrl.query({ fileId });
       window.open(result.downloadUrl, "_blank");
     } catch (err) {
-      console.error("Ошибка скачивания:", err);
       alert("Ошибка при скачивании файла");
     }
   };
@@ -144,31 +145,13 @@ export const ProjectDetailsPage = () => {
       const response = await fetch(result.downloadUrl);
       if (!response.ok) throw new Error("Не удалось загрузить файл");
       const text = await response.text();
-      const preview =
-        text.slice(0, 5000) + (text.length > 5000 ? "\n... (обрезано)\n" : "");
-      setPreviewFile({ name: fileName, content: preview });
+      setPreviewFile({ name: fileName, content: text });
     } catch (err) {
-      console.error("Ошибка предпросмотра:", err);
       alert("Невозможно отобразить файл. Попробуйте скачать его.");
     }
   };
 
-  // const handlePreview = async (fileId: string, fileName: string) => {
-  //   try {
-  //     const { downloadUrl } = await getDownloadUrl.mutateAsync({ fileId });
-  //     const response = await fetch(downloadUrl);
-  //     if (!response.ok) throw new Error("Не удалось загрузить файл");
-  //     const text = await response.text();
-  //     const preview =
-  //       text.slice(0, 5000) + (text.length > 5000 ? "\n... (обрезано)\n" : "");
-  //     setPreviewFile({ name: fileName, content: preview });
-  //   } catch (err) {
-  //     alert("Невозможно отобразить файл (возможно, бинарный)");
-  //   }
-  // };
-
   const handleSaveEdit = () => {
-    // Сбор метаданных pipeline
     const pipelineParams = {
       fastq: fastqMetadata,
       bam: bamMetadata,
@@ -176,7 +159,6 @@ export const ProjectDetailsPage = () => {
       annotation: annotationMetadata,
     };
 
-    // Преобразование даты в ISO-строку
     let experimentDate = editForm.experimentDate;
     if (experimentDate) {
       experimentDate = new Date(experimentDate).toISOString();
@@ -238,11 +220,12 @@ export const ProjectDetailsPage = () => {
     return (
       <div
         {...getRootProps()}
-        className="w-full border border-dashed border-gray-700 hover:border-blue-500 hover:bg-blue-900/10 transition rounded p-4 text-center cursor-pointer"
+        className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-custom p-4 text-center cursor-pointer
+                   hover:border-accent dark:hover:border-accent bg-white dark:bg-gray-800/30 transition-colors"
       >
         <input {...getInputProps()} />
-        <i className="fas fa-upload text-lg text-gray-500 mb-1"></i>
-        <p className="text-xs text-gray-500">{label}</p>
+        <i className="fas fa-upload text-2xl text-gray-400 dark:text-gray-500 mb-2"></i>
+        <p className="text-sm text-muted">{label}</p>
       </div>
     );
   };
@@ -296,7 +279,7 @@ export const ProjectDetailsPage = () => {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <div className="flex-1 overflow-y-auto p-8 max-w-5xl mx-auto w-full">
+        <div className="flex-1 overflow-y-auto p-8 max-w-5xl mx-auto w-full bg-base">
           <Link to="/" className="text-accent mb-4 inline-block">
             ← Назад к проектам
           </Link>
@@ -352,7 +335,6 @@ export const ProjectDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Отображение технических параметров */}
               {p.pipelineParams && (
                 <div className="mt-8 space-y-4">
                   <h2 className="text-xl font-semibold text-white border-b border-gray-800 pb-2">
@@ -437,6 +419,43 @@ export const ProjectDetailsPage = () => {
                 </div>
               )}
 
+              {/* Участники проекта (просмотр) */}
+              {accessData && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold text-white border-b border-gray-800 pb-2">
+                    Участники проекта
+                  </h2>
+                  {accessData.accesses.length > 0 ? (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {accessData.accesses.map((access: any) => (
+                        <div
+                          key={access.id}
+                          className="bg-surface border border-borderLine rounded-custom p-4 flex flex-col"
+                        >
+                          <p className="text-white font-medium text-sm">
+                            {access.user.fullName}
+                          </p>
+                          <p className="text-muted text-xs">
+                            {access.user.email}
+                          </p>
+                          <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded bg-accent-dim text-accent w-fit">
+                            {access.permission === "admin"
+                              ? "Администратор"
+                              : access.permission === "write"
+                                ? "Редактирование"
+                                : "Просмотр"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted text-sm mt-4">
+                      Нет добавленных участников
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Файлы проекта */}
               <div className="mt-8">
                 <h2 className="text-xl font-semibold text-white border-b border-gray-800 pb-2">
@@ -451,7 +470,7 @@ export const ProjectDetailsPage = () => {
                       {stage}
                     </h3>
                     <ul className="space-y-2">
-                      {stageFiles.map((f) => (
+                      {stageFiles.map((f: any) => (
                         <li
                           key={f.id}
                           className="flex justify-between items-center"
@@ -462,7 +481,9 @@ export const ProjectDetailsPage = () => {
                           </span>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handlePreview(f.id, f.fileName)}
+                              onClick={() =>
+                                handlePreview(f.id, f.fileName, f.mimeType)
+                              }
                               className="text-accent text-sm border border-accent/30 px-2 py-0.5 rounded"
                             >
                               Просмотр
@@ -485,6 +506,7 @@ export const ProjectDetailsPage = () => {
               </div>
             </>
           ) : (
+            /* Режим редактирования */
             <div className="bg-surface border border-borderLine rounded-custom p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">
                 Редактирование проекта
@@ -578,6 +600,7 @@ export const ProjectDetailsPage = () => {
                 <h3 className="text-md font-semibold text-white mb-3">
                   Технические параметры (pipeline)
                 </h3>
+                {/* FASTQ */}
                 <div className="bg-black/20 p-3 rounded mb-3">
                   <h4 className="text-accent text-sm mb-2">1. FASTQ</h4>
                   <div className="grid grid-cols-3 gap-3">
@@ -633,6 +656,7 @@ export const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
+                {/* BAM */}
                 <div className="bg-black/20 p-3 rounded mb-3">
                   <h4 className="text-accent text-sm mb-2">2. BAM/CRAM</h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -670,6 +694,7 @@ export const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
+                {/* VCF */}
                 <div className="bg-black/20 p-3 rounded mb-3">
                   <h4 className="text-accent text-sm mb-2">3. VCF</h4>
                   <div className="grid grid-cols-3 gap-3">
@@ -726,6 +751,7 @@ export const ProjectDetailsPage = () => {
                     </div>
                   </div>
                 </div>
+                {/* Аннотации */}
                 <div className="bg-black/20 p-3 rounded mb-3">
                   <h4 className="text-accent text-sm mb-2">4. Аннотации</h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -786,6 +812,11 @@ export const ProjectDetailsPage = () => {
                 {uploadingFiles && (
                   <p className="text-sm text-accent mt-2">Загрузка файлов...</p>
                 )}
+              </div>
+
+              {/* Управление участниками (редактирование) */}
+              <div className="mt-6 border-t border-borderLine pt-4">
+                <AccessManager projectId={id!} />
               </div>
 
               <div className="flex justify-end gap-2 mt-6">

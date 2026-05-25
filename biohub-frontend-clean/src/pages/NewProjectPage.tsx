@@ -51,6 +51,35 @@ export const NewProjectPage = () => {
   const [uploading, setUploading] = useState(false);
   const createProject = trpc.project.create.useMutation();
   const getUploadUrl = trpc.file.getUploadUrl.useMutation();
+  const addAccess = trpc.project.addAccess.useMutation(); // <-- новый хук
+
+  // ---- Участники ----
+  const [participants, setParticipants] = useState<
+    { email: string; permission: "read" | "write" | "admin" }[]
+  >([]);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPermission, setNewPermission] = useState<
+    "read" | "write" | "admin"
+  >("read");
+
+  const handleAddParticipant = () => {
+    if (!newEmail.trim()) return;
+    if (participants.some((p) => p.email === newEmail.trim())) {
+      alert("Этот участник уже добавлен");
+      return;
+    }
+    setParticipants([
+      ...participants,
+      { email: newEmail.trim(), permission: newPermission },
+    ]);
+    setNewEmail("");
+    setNewPermission("read");
+  };
+
+  const removeParticipant = (email: string) => {
+    setParticipants(participants.filter((p) => p.email !== email));
+  };
+  // -------------------
 
   const toggleStage = (stage: keyof typeof openStages) => {
     setOpenStages((prev) => ({ ...prev, [stage]: !prev[stage] }));
@@ -116,11 +145,30 @@ export const NewProjectPage = () => {
         advanced: {},
         status,
       });
+
+      // Добавляем участников, если они были указаны
+      for (const p of participants) {
+        try {
+          await addAccess.mutateAsync({
+            projectId: project.id,
+            email: p.email,
+            permission: p.permission,
+          });
+        } catch (err: any) {
+          console.error(
+            `Не удалось добавить участника ${p.email}:`,
+            err.message,
+          );
+          // можно показать уведомление, но не прерываем процесс
+        }
+      }
+
       for (const [stage, fileList] of Object.entries(files)) {
         for (const file of fileList) {
           await uploadFileToServer(file, stage, project.id);
         }
       }
+
       alert("Проект создан и файлы загружены");
       navigate(`/projects/${project.id}`);
     } catch (err: any) {
@@ -247,6 +295,88 @@ export const NewProjectPage = () => {
                   </p>
                 </div>
               </div>
+
+              {/* ---- НОВЫЙ БЛОК: Участники проекта ---- */}
+              <div className="bg-surface border border-borderLine rounded-custom p-5">
+                <h3 className="text-sm font-bold text-muted mb-4">
+                  Участники проекта
+                </h3>
+                <p className="text-xs text-muted mb-3">
+                  Добавьте коллег, которые будут иметь доступ к проекту после
+                  его создания. Роль можно будет изменить позже в настройках
+                  проекта.
+                </p>
+
+                {/* Форма добавления */}
+                <div className="flex flex-wrap gap-2 items-end mb-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-xs text-muted mb-1">
+                      Email пользователя
+                    </label>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="user@example.com"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-muted mb-1">
+                      Роль
+                    </label>
+                    <select
+                      value={newPermission}
+                      onChange={(e) => setNewPermission(e.target.value as any)}
+                      className="w-full"
+                    >
+                      <option value="read">Просмотр</option>
+                      <option value="write">Редактирование</option>
+                      <option value="admin">Администратор</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddParticipant}
+                    className="bg-accent text-white px-4 py-2 rounded disabled:opacity-50"
+                  >
+                    Добавить
+                  </button>
+                </div>
+
+                {/* Список добавленных участников */}
+                {participants.length > 0 && (
+                  <div className="space-y-2">
+                    {participants.map((p) => (
+                      <div
+                        key={p.email}
+                        className="flex items-center justify-between bg-gray-50 dark:bg-black/20 border border-borderLine rounded-custom p-3"
+                      >
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            {p.email}
+                          </p>
+                          <p className="text-muted text-xs">
+                            {p.permission === "read"
+                              ? "Просмотр"
+                              : p.permission === "write"
+                                ? "Редактирование"
+                                : "Администратор"}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeParticipant(p.email)}
+                          className="text-red-500 hover:text-red-400 text-sm"
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* ------------------------------------ */}
 
               {/* Стадии загрузки */}
               <div className="bg-surface border border-borderLine rounded-custom p-5">

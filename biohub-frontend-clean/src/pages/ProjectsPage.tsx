@@ -9,7 +9,6 @@ export const ProjectsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: user } = trpc.user.getProfile.useQuery();
-
   const { data, isLoading, error, refetch } = trpc.project.list.useQuery();
   const deleteProject = trpc.project.delete.useMutation({
     onSuccess: () => refetch(),
@@ -54,24 +53,18 @@ export const ProjectsPage = () => {
     }
   };
 
-  const handleRowClick = (project: any) => {
-    setSelectedProject(project);
-  };
-
-  const handleRowDoubleClick = (projectId: string) => {
+  const handleRowClick = (project: any) => setSelectedProject(project);
+  const handleRowDoubleClick = (projectId: string) =>
     navigate(`/projects/${projectId}`);
-  };
 
-  if (isLoading) {
+  if (isLoading)
     return (
       <div className="flex h-screen items-center justify-center text-white">
         Загрузка...
       </div>
     );
-  }
-  if (error) {
+  if (error)
     return <div className="text-red-500 p-8">Ошибка: {error.message}</div>;
-  }
 
   const totalFiles = selectedProject?.files?.length || 0;
   const totalSize =
@@ -81,18 +74,10 @@ export const ProjectsPage = () => {
     ) || 0;
   const totalSizeGB = (totalSize / 1e9).toFixed(2);
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "active":
-        return "Активен";
-      case "in_progress":
-        return "В работе";
-      case "completed":
-        return "Завершён";
-      default:
-        return status;
-    }
-  };
+  const getStatusText = (status: string) =>
+    ({ active: "Активен", in_progress: "В работе", completed: "Завершён" })[
+      status
+    ] || status;
 
   const getQcStatus = (qc: string) => {
     if (qc === "passed") return { text: "ПРОЙДЕН", color: "text-accent" };
@@ -109,7 +94,9 @@ export const ProjectsPage = () => {
     return (
       <tr
         key={p.id}
-        className={`hover:bg-surface-hover transition-colors group cursor-pointer ${selectedProject?.id === p.id ? "bg-accent-dim" : ""}`}
+        className={`hover:bg-surface-hover transition-colors group cursor-pointer ${
+          selectedProject?.id === p.id ? "bg-accent-dim" : ""
+        }`}
         onClick={() => handleRowClick(p)}
         onDoubleClick={() => handleRowDoubleClick(p.id)}
       >
@@ -135,7 +122,13 @@ export const ProjectsPage = () => {
             className={`flex items-center gap-1.5 text-xs font-medium ${qc.color}`}
           >
             <div
-              className={`w-1.5 h-1.5 rounded-full ${qc.color === "text-accent" ? "bg-accent" : qc.color === "text-red-500" ? "bg-red-500" : "bg-yellow-500"}`}
+              className={`w-1.5 h-1.5 rounded-full ${
+                qc.color === "text-accent"
+                  ? "bg-accent"
+                  : qc.color === "text-red-500"
+                    ? "bg-red-500"
+                    : "bg-yellow-500"
+              }`}
             ></div>
             {qc.text}
           </div>
@@ -163,7 +156,8 @@ export const ProjectsPage = () => {
     .toUpperCase();
 
   return (
-    <div className="bg-base text-gray-200 font-sans h-screen w-screen overflow-hidden flex selection:bg-accent selection:text-base">
+    <div className="bg-base text-gray-200 font-sans h-screen w-screen overflow-hidden flex">
+      {/* Боковая панель */}
       <aside className="w-64 flex-shrink-0 border-r border-white/5 bg-white/[0.01] backdrop-blur-xl flex flex-col h-full z-10">
         <div className="h-20 flex items-center px-6 border-b border-white/5 gap-3">
           <div className="relative w-8 h-8 text-accent flex items-center justify-center">
@@ -218,7 +212,7 @@ export const ProjectsPage = () => {
         <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
           <Link
             to="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-custom bg-accent-dim text-accent border border-accent/20 transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-custom bg-accent-dim text-accent border border-accent/20"
           >
             <i className="ph ph-folder-notch text-xl"></i>
             <span className="font-medium text-sm">Проекты</span>
@@ -235,14 +229,14 @@ export const ProjectsPage = () => {
             className="flex items-center gap-3 px-3 py-2.5 rounded-custom text-muted hover:text-white hover:bg-surface-hover transition-colors"
           >
             <i className="ph ph-user-circle text-xl"></i>
-            <span className="font-medium text-sm">Личный кабинет</span>
+            <span className="font-medium text-sm">Аккаунт</span>
           </Link>
         </nav>
 
         <ThemeToggle />
 
         <div className="p-4 border-t border-white/5">
-          <button className="flex items-center gap-3 w-full p-2 rounded-custom hover:bg-surface-hover transition-colors text-left">
+          <div className="flex items-center gap-3 w-full p-2 rounded-custom hover:bg-surface-hover transition-colors">
             <div className="w-8 h-8 rounded-full bg-surface border border-white/10 flex items-center justify-center text-xs font-mono text-accent">
               {initials}
             </div>
@@ -252,17 +246,17 @@ export const ProjectsPage = () => {
               </p>
               <p className="text-xs text-muted truncate">{position}</p>
             </div>
-            <i className="ph ph-caret-up text-muted"></i>
-          </button>
+          </div>
         </div>
       </aside>
 
+      {/* Основной контент */}
       <main className="flex-1 flex flex-col min-w-0 bg-base">
         <header className="h-20 px-8 flex items-center justify-between border-b border-white/5 z-10 backdrop-blur-sm">
           <div className="flex-1 max-w-2xl">
-            <div className="relative group">
+            <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="ph ph-magnifying-glass text-muted group-focus-within:text-accent transition-colors"></i>
+                <i className="ph ph-magnifying-glass text-muted"></i>
               </div>
               <input
                 type="text"
@@ -286,7 +280,7 @@ export const ProjectsPage = () => {
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           <div className="flex items-end justify-between mb-2">
             <div>
-              <h1 className="text-2xl font-semibold text-white tracking-tight">
+              <h1 className="text-2xl font-semibold text-white">
                 {selectedProject?.name || "Выберите проект"}
               </h1>
               <p className="text-sm text-muted mt-1">
@@ -295,7 +289,7 @@ export const ProjectsPage = () => {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="flex items-center gap-1 text-muted">
-                <div className="w-2 h-2 rounded-full bg-accent"></div>{" "}
+                <div className="w-2 h-2 rounded-full bg-accent"></div>
                 Синхронизация
               </span>
               <span className="text-white/10 mx-2">|</span>
@@ -305,8 +299,9 @@ export const ProjectsPage = () => {
             </div>
           </div>
 
+          {/* Карточки метрик */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between hover:border-white/20 transition-colors">
+            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-sm font-medium text-muted">
                   Всего файлов
@@ -323,8 +318,7 @@ export const ProjectsPage = () => {
                 </div>
               </div>
             </div>
-
-            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between hover:border-white/20 transition-colors">
+            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-sm font-medium text-muted">
                   Тип эксперимента
@@ -341,8 +335,7 @@ export const ProjectsPage = () => {
                 </div>
               </div>
             </div>
-
-            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between hover:border-white/20 transition-colors">
+            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-sm font-medium text-muted">
                   Платформа
@@ -358,8 +351,7 @@ export const ProjectsPage = () => {
                 </div>
               </div>
             </div>
-
-            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between hover:border-white/20 transition-colors">
+            <div className="bg-surface border border-white/10 rounded-custom p-5 backdrop-blur-md flex flex-col justify-between">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-sm font-medium text-muted">Статус</span>
                 <i className="ph ph-cpu text-muted text-lg"></i>
@@ -376,8 +368,9 @@ export const ProjectsPage = () => {
             </div>
           </div>
 
+          {/* Таблица проектов */}
           <div className="bg-surface border border-white/10 rounded-custom backdrop-blur-md flex flex-col">
-            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/[0.01] rounded-t-custom">
+            <div className="p-4 border-b border-white/10">
               <h2 className="text-base font-semibold text-white">
                 Список проектов
               </h2>
@@ -407,7 +400,7 @@ export const ProjectsPage = () => {
                 </tbody>
               </table>
             </div>
-            <div className="p-4 border-t border-white/10 flex items-center justify-between bg-white/[0.01] rounded-b-custom">
+            <div className="p-4 border-t border-white/10">
               <span className="text-xs text-muted">
                 Показано {filteredProjects.length} записей
               </span>
